@@ -1,82 +1,80 @@
 import Playlist from "../models/playlist.model.js";
-import Video from "../models/video.model.js";
 
-// 🔹 CREATE PLAYLIST
+// ➤ Create playlist
 export const createPlaylist = async (req, res) => {
-  try {
-    const { name, subject, class: className } = req.body;
+    try {
+        const playlist = await Playlist.create(req.body);
 
-    if (!name || !subject || !className) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
+        res.status(201).json({
+            success: true,
+            playlist
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    // prevent duplicate playlist
-    const existing = await Playlist.findOne({ name, subject, class: className });
-
-    if (existing) {
-      return res.status(409).json({
-        message: "Playlist already exists",
-      });
-    }
-
-    const playlist = await Playlist.create({
-      name,
-      subject,
-      class: className,
-    });
-
-    res.status(201).json({
-      message: "Playlist created successfully",
-      playlist,
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Error creating playlist",
-      error: error.message,
-    });
-  }
 };
 
+// ➤ Get all playlists
+export const getAllPlaylists = async (req, res) => {
+    try {
+        const playlists = await Playlist.find()
+            .populate("videos") // important
+            .sort({ createdAt: -1 });
 
-// 🔹 GET PLAYLISTS (FILTER)
-export const getPlaylists = async (req, res) => {
-  try {
-    const { subject, class: className } = req.query;
-
-    let filter = {};
-
-    if (subject) filter.subject = subject;
-    if (className) filter.class = className;
-
-    const playlists = await Playlist.find(filter);
-
-    res.status(200).json(playlists);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching playlists",
-      error: error.message,
-    });
-  }
+        res.status(200).json({
+            success: true,
+            playlists
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
+// ➤ Get single playlist
+export const getPlaylistById = async (req, res) => {
+    try {
+        const playlist = await Playlist.findById(req.params.id)
+            .populate("videos");
 
-// 🔹 GET VIDEOS BY PLAYLIST
-export const getVideosByPlaylist = async (req, res) => {
-  try {
-    const { name } = req.params;
+        if (!playlist) {
+            return res.status(404).json({ message: "Playlist not found" });
+        }
 
-    const videos = await Video.find({ playlist: name });
+        res.status(200).json(playlist);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-    res.status(200).json(videos);
+// ➤ Add video to playlist
+export const addVideoToPlaylist = async (req, res) => {
+    try {
+        const { videoId } = req.body;
 
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching playlist videos",
-      error: error.message,
-    });
-  }
+        const playlist = await Playlist.findById(req.params.id);
+
+        if (!playlist) {
+            return res.status(404).json({ message: "Playlist not found" });
+        }
+
+        playlist.videos.push(videoId);
+        await playlist.save();
+
+        res.status(200).json({
+            message: "Video added to playlist",
+            playlist
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ➤ Delete playlist
+export const deletePlaylist = async (req, res) => {
+    try {
+        await Playlist.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Playlist deleted" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };

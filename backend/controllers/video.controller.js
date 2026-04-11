@@ -1,60 +1,61 @@
-import Video from "../models/video.model.js";
+import Video from "../models/video.model.js"
 
-// creating video in backend 
-
-export const createVideo= async (req,res)=>{
+// ➤ Add video (store from YouTube API or manually)
+export const addVideo = async (req, res) => {
     try {
-        const {title,subject,class:className,playlist, youtubeId} = req.body;
+        const video = await Video.create(req.body);
+        res.status(201).json({
+            success: true,
+            video
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-        if(!title || !subject || !className || !playlist || !youtubeId){
-            return res.status(400).json({
-                message:"All fields are erquired..."
-            })
+// ➤ Get all videos
+export const getAllVideos = async (req, res) => {
+    try {
+        const { category } = req.query;
+
+        let filter = {};
+        if (category) {
+            filter.category = category;
         }
 
-        const existing = await Video.findOne({ youtubeId });
-          if (existing) {
-            return res.status(409).json({ message: "Video already exists" });
-          }
+        const videos = await Video.find(filter).sort({ createdAt: -1 });
 
-        const video = await Video.create({
-            title,
-            youtubeId,
-            subject,
-            class:className,
-            playlist
-        })
-
-        res.status(201).json({
-            message:"Youtube video is added .... ",
-            video,
-        })
-
-
+        res.status(200).json({
+            success: true,
+            count: videos.length,
+            videos
+        });
     } catch (error) {
-        console.log(error)
+        res.status(500).json({ message: error.message });
     }
-}
+};
 
-// getting all video as per requirement 
-export const getVideosByFilter = async (req, res) => {
-  try {
-    const { subject, class: className, playlist } = req.query;
+// ➤ Get single video
+export const getVideoById = async (req, res) => {
+    try {
+        const video = await Video.findById(req.params.id);
 
-    let filter = {};
+        if (!video) {
+            return res.status(404).json({ message: "Video not found" });
+        }
 
-    if (subject) filter.subject = subject;
-    if (className) filter.class = className;
-    if (playlist) filter.playlist = playlist;
+        res.status(200).json(video);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-    const videos = await Video.find(filter);
-
-    res.status(200).json(videos);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Error filtering videos",
-      error: error.message,
-    });
-  }
+// ➤ Delete video (optional admin)
+export const deleteVideo = async (req, res) => {
+    try {
+        await Video.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Video deleted" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };

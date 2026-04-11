@@ -1,24 +1,43 @@
 import mongoose from "mongoose";
 
-const playlistSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
+const playlistSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
     },
 
-    subject: {
-      type: String,
-      required: true,
+    description: {
+        type: String,
     },
 
-    class: {
-      type: String,
-      required: true,
+    category: {
+        type: String,
+        required: true,
     },
-  },
-  { timestamps: true }
-);
+
+    videos: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video",
+        }
+    ],
+
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // optional (admin or user)
+    },
+
+    thumbnail: {
+        type: String,
+    },
+
+    isPublic: {
+        type: Boolean,
+        default: true,
+    }
+
+}, {
+    timestamps: true,
+});
 
 export default mongoose.model("Playlist", playlistSchema);

@@ -1,21 +1,18 @@
 import express from "express";
 import {
-  createPlaylist,
-  getPlaylists,
-  getVideosByPlaylist,
+    createPlaylist,
+    getAllPlaylists,
+    getPlaylistById,
+    addVideoToPlaylist,
+    deletePlaylist
 } from "../controllers/playlist.controller.js";
-
-import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// 🔹 CREATE 
-router.post("/", authMiddleware, createPlaylist);
-
-// 🔹 GET playlists
-router.get("/", getPlaylists);
-
-// 🔹 GET videos of playlist
-router.get("/:name/videos", getVideosByPlaylist);
+router.post("/", createPlaylist);
+router.get("/", getAllPlaylists);
+router.get("/:id", getPlaylistById);
+router.post("/:id/add-video", addVideoToPlaylist);
+router.delete("/:id", deletePlaylist);
 
 export default router;

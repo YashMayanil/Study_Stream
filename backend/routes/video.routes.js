@@ -1,9 +1,16 @@
-import express from "express"
-import { createVideo, getVideosByFilter } from "../controllers/video.controller.js";
-import {authMiddleware} from "../middleware/auth.middleware.js";
+import express from "express";
+import {
+    addVideo,
+    getAllVideos,
+    getVideoById,
+    deleteVideo
+} from "../controllers/video.controller.js";
+
 const router = express.Router();
 
-router.post("/",authMiddleware,createVideo);
-router.get("/",getVideosByFilter)
+router.post("/", addVideo);
+router.get("/", getAllVideos);
+router.get("/:id", getVideoById);
+router.delete("/:id", deleteVideo);
 
 export default router;

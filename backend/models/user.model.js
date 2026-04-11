@@ -17,17 +17,25 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
 
-    bookmarks:[
+    bookmarks: [
         {
-            type:String, // storing youtube id 
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video"
         }
-    ],
+        ],
 
-    history:[
+        history: [
         {
-            type:String,
-        },
-    ],
+            video: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video"
+            },
+            watchedAt: {
+            type: Date,
+            default: Date.now
+            }
+        }
+        ]
 },{
     timestamps:true,
 })

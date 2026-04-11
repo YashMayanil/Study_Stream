@@ -1,33 +1,62 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const videoSchema = new mongoose.Schema({
-
-    title:{
-        type:String,
-        required:true
+    title: {
+        type: String,
+        required: true,
     },
-     youtubeId: {
-      type: String,
-      required: true,
+
+    description: {
+        type: String,
+    },
+
+    videoId: {
+        type: String, // YouTube video ID
+        required: true,
+        unique: true,
+    },
+
+    thumbnail: {
+        type: String,
+    },
+
+    channelTitle: {
+        type: String,
+    },
+
+    category: {
+        type: String,
+        enum: [
+            "class10",
+            "class11",
+            "class12",
+            "dsa",
+            "webdev",
+            "science",
+            "maths"
+        ],
+        required: true,
     },
 
     subject: {
-      type: String,
-      required: true,
+        type: String, // optional (Physics, Chemistry, etc.)
     },
 
-    class: {
-      type: String,
-      required: true,
+    duration: {
+        type: String, // ISO duration from YouTube
     },
 
-    playlist: {
-      type: String,
-      required: true,
+    views: {
+        type: Number,
     },
 
-},{
-    timestamps:true,
-})
+    isVerifiedEducational: {
+        type: Boolean,
+        default: true,
+    }
 
-export default mongoose.model("Video",videoSchema)
+}, {
+    timestamps: true,
+});
+
+export default mongoose.model("Video", videoSchema);
