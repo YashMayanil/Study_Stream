@@ -4,13 +4,15 @@ import {
     getAllPlaylists,
     getPlaylistById,
     addVideoToPlaylist,
-    deletePlaylist
+    deletePlaylist,
+    generatePlaylist
 } from "../controllers/playlist.controller.js";
 
 const router = express.Router();
 
 router.post("/", createPlaylist);
 router.get("/", getAllPlaylists);
+router.get("/generate", generatePlaylist);
 router.get("/:id", getPlaylistById);
 router.post("/:id/add-video", addVideoToPlaylist);
 router.delete("/:id", deletePlaylist);

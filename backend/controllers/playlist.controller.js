@@ -1,4 +1,5 @@
 import Playlist from "../models/playlist.model.js";
+import Video from "../models/video.model.js";
 
 // ➤ Create playlist
 export const createPlaylist = async (req, res) => {
@@ -74,6 +75,33 @@ export const deletePlaylist = async (req, res) => {
     try {
         await Playlist.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: "Playlist deleted" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+export const generatePlaylist = async (req, res) => {
+    try {
+        const { category } = req.query;
+
+        const videos = await Video.find({ category }).limit(20);
+
+        if (videos.length === 0) {
+            return res.status(404).json({ message: "No videos found" });
+        }
+
+        const playlist = await Playlist.create({
+            title: `${category} Playlist`,
+            category,
+            videos: videos.map(v => v._id)
+        });
+
+        res.status(201).json({
+            success: true,
+            playlist
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
