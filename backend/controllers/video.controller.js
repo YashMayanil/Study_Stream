@@ -6,11 +6,16 @@ export const createVideo= async (req,res)=>{
     try {
         const {title,subject,class:className,playlist, youtubeId} = req.body;
 
-        if(!title || !subject || !className || !playlist || youtubeId){
+        if(!title || !subject || !className || !playlist || !youtubeId){
             return res.status(400).json({
                 message:"All fields are erquired..."
             })
         }
+
+        const existing = await Video.findOne({ youtubeId });
+          if (existing) {
+            return res.status(409).json({ message: "Video already exists" });
+          }
 
         const video = await Video.create({
             title,
@@ -27,7 +32,7 @@ export const createVideo= async (req,res)=>{
 
 
     } catch (error) {
-        
+        console.log(error)
     }
 }
 
