@@ -33,7 +33,11 @@ const videoSchema = new mongoose.Schema({
             "dsa",
             "webdev",
             "science",
-            "maths"
+            "maths",
+            "physics",
+            "chemistry",
+            "science",
+            "general knowlege"
         ],
         required: true,
     },
