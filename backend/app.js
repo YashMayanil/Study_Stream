@@ -4,7 +4,7 @@ import connectDB from "./config/db.js";
 import authRoute from "./routes/auth.routes.js"
 import videoRoutes from "./routes/video.routes.js";
 import playlistRoutes from "./routes/playlist.routes.js";
-
+import cors from "cors";
 
 const app = express();
 
@@ -13,7 +13,9 @@ dotenv.config();
 connectDB();
 
 
+app.use(cors())
 app.use(express.json());
+
 
 app.use("/api/auth", authRoute);
 app.use("/api/videos", videoRoutes);

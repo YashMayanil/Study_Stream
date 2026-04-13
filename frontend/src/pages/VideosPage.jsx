@@ -2,29 +2,41 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 import Loader from '../components/Loader';
-import { videos, categories } from '../data/mockData';
+import { getVideo } from '../services/api';
 
 export default function VideosPage() {
   const { categorySlug } = useParams();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [video, setVideo] = useState([]);
 
   useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(t);
+    fetchVideos();
   }, [categorySlug]);
 
-  const category = categories.find((c) => c.slug === categorySlug);
-  const categoryId = category?.id;
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
 
-  const filtered = videos.filter((v) => {
-    const matchCat = categoryId ? v.category === categoryId : true;
-    const matchSearch = search
-      ? v.title.toLowerCase().includes(search.toLowerCase()) || v.channel.toLowerCase().includes(search.toLowerCase())
-      : true;
-    return matchCat && matchSearch;
-  });
+      const res = await getVideos(categorySlug);
+
+      setVideo(res.data.videos);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
+const filtered = videos.filter((v) => {
+  const matchSearch = search
+    ? v.title.toLowerCase().includes(search.toLowerCase()) ||
+      v.channelTitle.toLowerCase().includes(search.toLowerCase())
+    : true;
+  return matchSearch;
+});
+
+
 
   return (
     <div className="min-h-screen pt-24 pb-20 px-4">
@@ -77,7 +89,7 @@ export default function VideosPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
             {filtered.map((video) => (
-              <VideoCard key={video.id} video={video} />
+              <VideoCard key={video._id} video={video} />
             ))}
           </div>
         )}
