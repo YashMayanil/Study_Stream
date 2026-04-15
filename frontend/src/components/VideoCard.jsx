@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export default function VideoCard({ video }) {
   return (
     <Link
-      to={`/watch/${video.id}`}
+      to={`/watch/${video._id || video._id}`}
       className="group block rounded-xl overflow-hidden glass-card transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/20 glow-blue-hover"
     >
       {/* Thumbnail */}

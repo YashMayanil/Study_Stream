@@ -17,7 +17,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/videos/:categorySlug" element={<VideosPage />} />
           <Route path="/videos" element={<VideosPage />} />
-          <Route path="/watch/:videoId" element={<WatchPage />} />
+          <Route path="/watch/:id" element={<WatchPage />} />
           <Route path="/watch-later" element={<WatchLater />} />
           <Route path="/favourites" element={<Favourites />} />
           <Route path="/login" element={<Login />} />

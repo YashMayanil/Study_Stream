@@ -1,11 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { videos, categories } from '../data/mockData';
+import { getVideoById } from '../services/api';
 
 export default function WatchPage() {
-  const { videoId } = useParams();
+  const [video,setVideo] = useState(null)
+  const { id } = useParams();
   const navigate = useNavigate();
-  const video = videos.find(v => v.id === videoId);
+
+  useEffect(() => {
+  fetchVideo();
+}, [id]);
+
+const fetchVideo = async () => {
+  try {
+    const res = await getVideoById(id);
+    setVideo(res.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const [notesOpen, setNotesOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -17,24 +30,32 @@ export default function WatchPage() {
   const [noteSaved, setNoteSaved] = useState(false);
 
   useEffect(() => {
-    if (!videoId) return;
+    if (!id) return;
     // Load notes for this video
     const allNotes = JSON.parse(localStorage.getItem('ss_notes') || '{}');
-    setSavedNotes(allNotes[videoId] || []);
+    setSavedNotes(allNotes[id] || []);
     // Load fav / watch later state
     const favs = JSON.parse(localStorage.getItem('ss_favourites') || '[]');
     const wl = JSON.parse(localStorage.getItem('ss_watch_later') || '[]');
-    setIsFav(favs.includes(videoId));
-    setIsWatchLater(wl.includes(videoId));
-  }, [videoId]);
+    setIsFav(favs.includes(id));
+    setIsWatchLater(wl.includes(id));
+  }, [id]);
+
+  if (!video) {
+  return (
+    <div className="min-h-screen flex justify-center items-center text-white">
+      Loading...
+    </div>
+  );
+}
 
   const toggleFav = () => {
     const favs = JSON.parse(localStorage.getItem('ss_favourites') || '[]');
     let updated;
     if (isFav) {
-      updated = favs.filter(id => id !== videoId);
+      updated = favs.filter(item => item !== id);
     } else {
-      updated = [...favs, videoId];
+      updated = [...favs, id];
       setFavAnim(true);
       setTimeout(() => setFavAnim(false), 600);
     }
@@ -46,9 +67,9 @@ export default function WatchPage() {
     const wl = JSON.parse(localStorage.getItem('ss_watch_later') || '[]');
     let updated;
     if (isWatchLater) {
-      updated = wl.filter(id => id !== videoId);
+      updated = wl.filter(item => item !== id);
     } else {
-      updated = [...wl, videoId];
+      updated = [...wl, id];
       setWlAnim(true);
       setTimeout(() => setWlAnim(false), 600);
     }
@@ -65,8 +86,8 @@ export default function WatchPage() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       date: new Date().toLocaleDateString(),
     };
-    const updated = [...(allNotes[videoId] || []), newNote];
-    allNotes[videoId] = updated;
+    const updated = [...(allNotes[id] || []), newNote];
+    allNotes[id] = updated;
     localStorage.setItem('ss_notes', JSON.stringify(allNotes));
     setSavedNotes(updated);
     setNoteText('');
@@ -76,8 +97,8 @@ export default function WatchPage() {
 
   const deleteNote = (noteId) => {
     const allNotes = JSON.parse(localStorage.getItem('ss_notes') || '{}');
-    const updated = (allNotes[videoId] || []).filter(n => n.id !== noteId);
-    allNotes[videoId] = updated;
+    const updated = (allNotes[id] || []).filter(n => n.id !== noteId);
+    allNotes[id] = updated;
     localStorage.setItem('ss_notes', JSON.stringify(allNotes));
     setSavedNotes(updated);
   };
@@ -92,8 +113,6 @@ export default function WatchPage() {
     );
   }
 
-  const category = categories.find(c => c.id === video.category);
-  const related = videos.filter(v => v.category === video.category && v.id !== video.id).slice(0, 4);
 
   return (
     <div className="min-h-screen pt-20 pb-20">
@@ -171,8 +190,8 @@ export default function WatchPage() {
             <div className="relative rounded-2xl overflow-hidden bg-black shadow-2xl shadow-black/60 glow-blue animate-fade-in">
               <div className="aspect-video">
                 <iframe
-                  src={`https://www.youtube.com/embed/${video.youtubeId}?rel=0&modestbranding=1&autoplay=0`}
-                  title={video.title}
+                  src={`https://www.youtube.com/embed/${video.videoId}?rel=0&modestbranding=1&autoplay=0`}
+                  title={video.channelTitle}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full"
@@ -216,7 +235,7 @@ export default function WatchPage() {
               <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight" style={{fontFamily:'Syne,sans-serif'}}>{video.title}</h1>
               <div className="flex items-center gap-3 mt-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xs font-bold text-white">
-                  {video.channel[0]}
+                  {video?.channelTitle?.[0]}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-300">{video.channel}</p>

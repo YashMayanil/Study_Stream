@@ -27,9 +27,9 @@ const videoSchema = new mongoose.Schema({
     category: {
         type: String,
         enum: [
-            "class10",
-            "class11",
-            "class12",
+            "class-10",
+            "class-11",
+            "class-12",
             "dsa",
             "webdev",
             "science",

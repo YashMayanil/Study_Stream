@@ -3,24 +3,31 @@ import { Link } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import VideoCard from '../components/VideoCard';
 import Loader from '../components/Loader';
-import { categories, videos } from '../data/mockData';
+import { categories } from '../data/mockData';
+import { getVideo } from '../services/api.js';
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
-  const featuredVideos = videos.slice(0, 4);
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 300);
-    return () => clearTimeout(t);
+    fetchVideos();
   }, []);
 
-  if (!loaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader size="lg" text="Loading StudyStream..." />
-      </div>
-    );
-  }
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getVideo("dsa"); // it shoudl be fixed
+
+      setVideos(res.data.videos);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -113,8 +120,8 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredVideos.map((video) => (
-              <VideoCard key={video.id} video={video} />
+            {videos.slice(0, 4).map((video) => (
+              <VideoCard key={video._id || video.id} video={video} />
             ))}
           </div>
         </div>
