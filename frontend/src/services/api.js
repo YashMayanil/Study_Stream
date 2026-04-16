@@ -14,7 +14,22 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// ─── Videos ───────────────────────────────────────────────
+// Authentication APIS
+// -----------------
+
+//login api 
+export const loginUser = (data)=>{
+    return api.post("/auth/login",data);
+}
+
+//Register Api
+export const registerUser = (data)=>{
+    return api.post("/auth/register",data);
+}
+
+
+// Videos APIS 
+// -----------------
 
 // Get videos by category
 export const getVideo = (category) => {
@@ -26,7 +41,8 @@ export const getVideoById = (id) => {
     return api.get(`/videos/${id}`)
 }
 
-// ─── User ─────────────────────────────────────────────────
+// User APIS
+//-----------
 
 // Get current user (with favourites & watchLater populated)
 export const getMe = () => {

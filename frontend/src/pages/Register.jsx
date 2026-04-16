@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/api';
+import { useToast } from '../components/Toast';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,11 +23,37 @@ export default function Register() {
       setError('Password must be at least 6 characters.');
       return;
     }
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    localStorage.setItem('ss_auth_token', 'demo_token');
-    setLoading(false);
-    navigate('/');
+
+    try {
+      setLoading(true);
+
+      const res = await registerUser({
+        username: form.username,
+        email: form.email,
+        password: form.password
+      });
+
+      // 🎉 Success toast
+      showToast({
+        type: 'success',
+        title: `Account created! Welcome, ${res.data.user.username} 🚀`,
+        message: 'Start exploring curated videos and learning without distractions.',
+        duration: 5000,
+      });
+
+      // Notify Navbar in same tab to re-read localStorage
+      window.dispatchEvent(new Event('userUpdated'));
+
+      navigate("/");
+
+    } catch (error) {
+      console.error(error);
+      const msg = error.response?.data?.message || "Registration failed. Please try again.";
+      setError(msg);
+      showToast({ type: 'error', title: 'Registration failed', message: msg });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fields = [

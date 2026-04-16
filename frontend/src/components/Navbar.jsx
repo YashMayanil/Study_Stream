@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useToast } from './Toast';
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -12,8 +13,36 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  // Read user from localStorage on mount + on storage changes
+  useEffect(() => {
+    const loadUser = () => {
+      const stored = localStorage.getItem('user');
+      setUser(stored ? JSON.parse(stored) : null);
+    };
+    loadUser();
+    // 'storage' fires when another tab changes localStorage
+    window.addEventListener('storage', loadUser);
+    // 'userUpdated' fires when login/register happens in THIS tab
+    window.addEventListener('userUpdated', loadUser);
+    return () => {
+      window.removeEventListener('storage', loadUser);
+      window.removeEventListener('userUpdated', loadUser);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setProfileOpen(false);
+    showToast({ type: 'info', title: 'Signed out', message: 'See you next time! Keep learning 📚' });
+    navigate('/');
+  };
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -67,76 +96,75 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Profile dropdown */}
-            <div className="relative" ref={profileRef}>
-              <button onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 hover:border-white/15 transition-all duration-200">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-md">
-                  S
-                </div>
-                <span className="text-sm text-slate-300 font-medium">Student</span>
-                <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                </svg>
-              </button>
+            {user ? (
+              /* Profile dropdown — shown when logged in */
+              <div className="relative" ref={profileRef}>
+                <button onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 hover:border-white/15 transition-all duration-200">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xs font-bold text-white shadow-md">
+                    {user.username?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <span className="text-sm text-slate-300 font-medium">{user.username}</span>
+                  <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                  </svg>
+                </button>
 
-              {/* Dropdown */}
-              {profileOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 glass border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden animate-fade-in">
-                  {/* Profile header */}
-                  <div className="p-4 border-b border-white/8">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/20">
-                        S
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white" style={{fontFamily:'Syne,sans-serif'}}>Student User</p>
-                        <p className="text-xs text-slate-500">student@email.com</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 grid grid-cols-3 gap-2">
-                      {[
-                        {label:'Videos', val:'24'},
-                        {label:'Watch Later', val:'8'},
-                        {label:'Favourites', val:'12'},
-                      ].map(s => (
-                        <div key={s.label} className="text-center p-2 rounded-lg bg-white/5">
-                          <p className="text-sm font-bold text-white">{s.val}</p>
-                          <p className="text-xs text-slate-600">{s.label}</p>
+                {/* Dropdown */}
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 glass border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden animate-fade-in">
+                    {/* Profile header */}
+                    <div className="p-4 border-b border-white/8">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/20">
+                          {user.username?.[0]?.toUpperCase() || 'U'}
                         </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white" style={{fontFamily:'Syne,sans-serif'}}>{user.username}</p>
+                          <p className="text-xs text-slate-500">{user.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Menu items */}
+                    <div className="p-2">
+                      {[
+                        {icon:'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z', label:'Watch Later', to:'/watch-later', color:'text-amber-400'},
+                        {icon:'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z', label:'Favourites', to:'/favourites', color:'text-pink-400'},
+                      ].map(item => (
+                        <Link key={item.label} to={item.to} onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all duration-150 group">
+                          <svg className={`w-4 h-4 ${item.color || 'text-slate-500'} transition-colors`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
+                          </svg>
+                          <span className="text-sm text-slate-400 group-hover:text-white transition-colors">{item.label}</span>
+                        </Link>
                       ))}
+                      <div className="mt-1 pt-1 border-t border-white/8">
+                        <button onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 transition-all duration-150 group">
+                          <svg className="w-4 h-4 text-red-500/60 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                          </svg>
+                          <span className="text-sm text-red-500/60 group-hover:text-red-400 transition-colors">Sign Out</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  {/* Menu items */}
-                  <div className="p-2">
-                    {[
-                      {icon:'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z', label:'My Profile', to:'/profile'},
-                      {icon:'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z', label:'Watch Later', to:'/watch-later', color:'text-amber-400'},
-                      {icon:'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z', label:'Favourites', to:'/favourites', color:'text-pink-400'},
-                      {icon:'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z', label:'My Notes', to:'/notes'},
-                      {icon:'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z', label:'Settings', to:'/settings'},
-                    ].map(item => (
-                      <Link key={item.label} to={item.to} onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all duration-150 group">
-                        <svg className={`w-4 h-4 ${item.color || 'text-slate-500'} group-hover:${item.color || 'text-slate-300'} transition-colors`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
-                        </svg>
-                        <span className="text-sm text-slate-400 group-hover:text-white transition-colors">{item.label}</span>
-                      </Link>
-                    ))}
-                    <div className="mt-1 pt-1 border-t border-white/8">
-                      <button onClick={() => { localStorage.removeItem('ss_auth_token'); navigate('/login'); setProfileOpen(false); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 transition-all duration-150 group">
-                        <svg className="w-4 h-4 text-red-500/60 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
-                        </svg>
-                        <span className="text-sm text-red-500/60 group-hover:text-red-400 transition-colors">Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              /* Login / Register — shown when logged out */
+              <div className="flex items-center gap-2">
+                <Link to="/login"
+                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 hover:bg-white/5">
+                  Sign In
+                </Link>
+                <Link to="/register"
+                  className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/20">
+                  Get Started
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Hamburger */}

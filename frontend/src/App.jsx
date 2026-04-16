@@ -7,12 +7,14 @@ import WatchLater from './pages/WatchLater';
 import Favourites from './pages/Favourites';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import { ToastProvider } from './components/Toast';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-dark-950">
-        <Navbar />
+      <ToastProvider>
+        <div className="min-h-screen bg-dark-950">
+          <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/videos/:categorySlug" element={<VideosPage />} />
@@ -39,7 +41,8 @@ export default function App() {
             </div>
           </div>
         </footer>
-      </div>
+        </div>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

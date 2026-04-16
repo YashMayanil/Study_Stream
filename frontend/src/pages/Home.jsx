@@ -10,6 +10,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
 
   useEffect(() => {
     fetchVideos();
@@ -127,28 +128,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="px-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden p-10 text-center glass-card border border-blue-500/10">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-violet-600/5 -z-10" />
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 blur-3xl rounded-full" />
-            <h3 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
-              Ready to level up?
-            </h3>
-            <p className="text-slate-400 mb-7">Join thousands of students studying smarter every day.</p>
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/25"
-            >
-              Get Started — It's Free
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
+      {/* CTA Banner — only shown to guests */}
+      {!user && (
+        <section className="px-4 pb-20">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative rounded-2xl overflow-hidden p-10 text-center glass-card border border-blue-500/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-violet-600/5 -z-10" />
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 blur-3xl rounded-full" />
+              <h3 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Syne, sans-serif' }}>
+                Ready to level up?
+              </h3>
+              <p className="text-slate-400 mb-7">Join thousands of students studying smarter every day.</p>
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/25"
+              >
+                Get Started — It's Free
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

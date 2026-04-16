@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from "../services/api.js"
+import { useToast } from '../components/Toast';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,12 +19,38 @@ export default function Login() {
       setError('Please fill in all fields.');
       return;
     }
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    // Demo: any login works
-    localStorage.setItem('ss_auth_token', 'demo_token');
-    setLoading(false);
-    navigate('/');
+    try {
+      setLoading(true);
+
+      const res = await loginUser({
+        email: form.email,
+        password: form.password
+      });
+
+      // Store token & user
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      // 🎉 Success toast
+      showToast({
+        type: 'success',
+        title: `Welcome back, ${res.data.user.username}! 👋`,
+        message: 'Continue your learning journey right where you left off.',
+        duration: 4000,
+      });
+
+      // Notify Navbar in same tab to re-read localStorage
+      window.dispatchEvent(new Event('userUpdated'));
+
+      navigate('/');
+
+    } catch (error) {
+      const msg = error.response?.data?.message || "Login failed. Please try again.";
+      setError(msg);
+      showToast({ type: 'error', title: 'Login failed', message: msg });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
