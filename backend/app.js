@@ -4,6 +4,7 @@ import connectDB from "./config/db.js";
 import authRoute from "./routes/auth.routes.js"
 import videoRoutes from "./routes/video.routes.js";
 import playlistRoutes from "./routes/playlist.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import cors from "cors";
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/api/auth", authRoute);
 app.use("/api/videos", videoRoutes);
 app.use("/api/playlists", playlistRoutes);
+app.use("/api/user", userRoutes);
 
 const port = process.env.PORT || 8000;
 

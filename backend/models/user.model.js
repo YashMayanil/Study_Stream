@@ -22,20 +22,34 @@ const userSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Video"
         }
-        ],
+    ],
 
-        history: [
+    favourites: [
         {
-            video: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Video"
+        }
+    ],
+
+    watchLater: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video"
+        }
+    ],
+
+    history: [
+        {
+            video: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Video"
             },
             watchedAt: {
-            type: Date,
-            default: Date.now
+                type: Date,
+                default: Date.now
             }
         }
-        ]
+    ]
 },{
     timestamps:true,
 })

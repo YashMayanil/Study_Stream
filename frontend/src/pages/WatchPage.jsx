@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getVideoById } from '../services/api';
+import { getVideoById, getVideo, getMe, toggleFavourite, toggleWatchLater } from '../services/api';
+import VideoCard from '../components/VideoCard';
 
 export default function WatchPage() {
   const [video,setVideo] = useState(null)
+  const [relatedVideos, setRelatedVideos] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -14,7 +16,24 @@ export default function WatchPage() {
 const fetchVideo = async () => {
   try {
     const res = await getVideoById(id);
-    setVideo(res.data);
+    const videoData = res.data;
+    setVideo(videoData);
+
+    fetchRelatedVideos(videoData.category, videoData._id);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchRelatedVideos = async (category, currentId) => {
+  try {
+    const res = await getVideo(category);
+
+    const filtered = res.data.videos.filter(
+      (v) => v._id !== currentId
+    );
+
+    setRelatedVideos(filtered.slice(0,4));
   } catch (error) {
     console.error(error);
   }
@@ -31,15 +50,24 @@ const fetchVideo = async () => {
 
   useEffect(() => {
     if (!id) return;
-    // Load notes for this video
+    // Load notes for this video (still localStorage)
     const allNotes = JSON.parse(localStorage.getItem('ss_notes') || '{}');
     setSavedNotes(allNotes[id] || []);
-    // Load fav / watch later state
-    const favs = JSON.parse(localStorage.getItem('ss_favourites') || '[]');
-    const wl = JSON.parse(localStorage.getItem('ss_watch_later') || '[]');
-    setIsFav(favs.includes(id));
-    setIsWatchLater(wl.includes(id));
+    // Load fav / watch later state from backend
+    loadUserState();
   }, [id]);
+
+  const loadUserState = async () => {
+    try {
+      const res = await getMe();
+      const user = res.data.user;
+      const videoIdStr = id.toString();
+      setIsFav(user.favourites.some(v => (v._id || v).toString() === videoIdStr));
+      setIsWatchLater(user.watchLater.some(v => (v._id || v).toString() === videoIdStr));
+    } catch (error) {
+      // Not logged in — silently ignore, buttons still work visually
+    }
+  };
 
   if (!video) {
   return (
@@ -49,32 +77,30 @@ const fetchVideo = async () => {
   );
 }
 
-  const toggleFav = () => {
-    const favs = JSON.parse(localStorage.getItem('ss_favourites') || '[]');
-    let updated;
-    if (isFav) {
-      updated = favs.filter(item => item !== id);
-    } else {
-      updated = [...favs, id];
-      setFavAnim(true);
-      setTimeout(() => setFavAnim(false), 600);
+  const toggleFav = async () => {
+    try {
+      const res = await toggleFavourite(id);
+      setIsFav(res.data.isFavourite);
+      if (res.data.isFavourite) {
+        setFavAnim(true);
+        setTimeout(() => setFavAnim(false), 600);
+      }
+    } catch (error) {
+      console.error('Login required to favourite videos');
     }
-    localStorage.setItem('ss_favourites', JSON.stringify(updated));
-    setIsFav(!isFav);
   };
 
-  const toggleWatchLater = () => {
-    const wl = JSON.parse(localStorage.getItem('ss_watch_later') || '[]');
-    let updated;
-    if (isWatchLater) {
-      updated = wl.filter(item => item !== id);
-    } else {
-      updated = [...wl, id];
-      setWlAnim(true);
-      setTimeout(() => setWlAnim(false), 600);
+  const toggleWL = async () => {
+    try {
+      const res = await toggleWatchLater(id);
+      setIsWatchLater(res.data.isWatchLater);
+      if (res.data.isWatchLater) {
+        setWlAnim(true);
+        setTimeout(() => setWlAnim(false), 600);
+      }
+    } catch (error) {
+      console.error('Login required to save watch later');
     }
-    localStorage.setItem('ss_watch_later', JSON.stringify(updated));
-    setIsWatchLater(!isWatchLater);
   };
 
   const saveNote = () => {
@@ -160,7 +186,7 @@ const fetchVideo = async () => {
             </button>
 
             {/* Watch Later button */}
-            <button onClick={toggleWatchLater}
+            <button onClick={toggleWL}
               className={`group relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 border ${isWatchLater ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'bg-white/5 border-white/8 text-slate-400 hover:bg-amber-500/10 hover:border-amber-500/20 hover:text-amber-400'} ${wlAnim ? 'scale-125' : 'scale-100'}`}
               title={isWatchLater ? 'Remove from Watch Later' : 'Save to Watch Later'}>
               <svg className="w-5 h-5" fill={isWatchLater ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -215,7 +241,7 @@ const fetchVideo = async () => {
                 </svg>
                 {isFav ? 'Saved' : 'Favourite'}
               </button>
-              <button onClick={toggleWatchLater}
+              <button onClick={toggleWL}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-all ${isWatchLater ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'bg-white/5 border-white/8 text-slate-400'}`}>
                 <svg className="w-4 h-4" fill={isWatchLater ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -341,7 +367,17 @@ const fetchVideo = async () => {
               </div>
             )}
 
+            <div className="mt-10">
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  Related Videos
+                </h2>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {relatedVideos.map((v) => (
+                    <VideoCard key={v._id} video={v} />
+                  ))}
+                </div>
+              </div>
           </div>
         </div>
       </div>

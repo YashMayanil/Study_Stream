@@ -1,21 +1,46 @@
 import axios from "axios"
 
 const api = axios.create({
-    baseURL:"http://localhost:8000/api",
-    withCredentials:true
+    baseURL: "http://localhost:8000/api",
+    withCredentials: true
 })
 
-// get videos by category 
-export const getVideo = (category) =>{
+// Attach JWT token to every request automatically
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// ─── Videos ───────────────────────────────────────────────
+
+// Get videos by category
+export const getVideo = (category) => {
     return api.get(`/videos?category=${category}`)
 }
 
-
-// getting only single video
-export const getVideoById = (id) =>{
+// Get single video by id
+export const getVideoById = (id) => {
     return api.get(`/videos/${id}`)
 }
 
+// ─── User ─────────────────────────────────────────────────
+
+// Get current user (with favourites & watchLater populated)
+export const getMe = () => {
+    return api.get("/user/me")
+}
+
+// Toggle favourite for a video
+export const toggleFavourite = (videoId) => {
+    return api.post(`/user/favourite/${videoId}`)
+}
+
+// Toggle watch later for a video
+export const toggleWatchLater = (videoId) => {
+    return api.post(`/user/watchlater/${videoId}`)
+}
 
 export default api;
-
