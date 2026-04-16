@@ -226,12 +226,12 @@ const fetchVideo = async () => {
 
             {/* Video info */}
             <div className="mt-4 glass-card rounded-2xl p-5 animate-slide-up">
-              {category && (
+              {/* {category && (
                 <div className="flex items-center gap-1.5 mb-2">
                   <span className="text-sm">{category.icon}</span>
                   <span className="text-xs font-medium text-blue-400 uppercase tracking-wider">{category.title}</span>
                 </div>
-              )}
+              )} */}
               <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight" style={{fontFamily:'Syne,sans-serif'}}>{video.title}</h1>
               <div className="flex items-center gap-3 mt-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-xs font-bold text-white">
@@ -341,29 +341,7 @@ const fetchVideo = async () => {
               </div>
             )}
 
-            {/* Related videos */}
-            {related.length > 0 && (
-              <div className="mt-10">
-                <h2 className="text-lg font-bold text-white mb-5" style={{fontFamily:'Syne,sans-serif'}}>More in {category?.title}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {related.map(v => (
-                    <div key={v.id} onClick={() => navigate(`/watch/${v.id}`)}
-                      className="group cursor-pointer rounded-xl overflow-hidden glass-card hover:border-blue-500/20 transition-all duration-300 hover:-translate-y-1">
-                      <div className="aspect-video overflow-hidden bg-dark-700">
-                        <img src={v.thumbnail} alt={v.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          onError={e => { e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`; }}
-                        />
-                      </div>
-                      <div className="p-3">
-                        <p className="text-xs font-medium text-slate-300 line-clamp-2 group-hover:text-blue-300 transition-colors">{v.title}</p>
-                        <p className="text-xs text-slate-600 mt-1">{v.duration}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
