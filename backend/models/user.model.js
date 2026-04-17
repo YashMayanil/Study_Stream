@@ -14,7 +14,12 @@ const userSchema = new mongoose.Schema({
 
     password:{
         type:String,
-        required:true,
+        required:false,   // optional — Google OAuth users have no password
+    },
+
+    googleId:{
+        type:String,
+        default:null,
     },
 
     bookmarks: [

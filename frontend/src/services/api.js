@@ -17,6 +17,14 @@ api.interceptors.request.use((config) => {
 // Authentication APIS
 // -----------------
 
+//Google Login api
+// -------------------
+
+export const googleLogin = (data) => {
+    return api.post("/auth/google", data);
+}
+
+
 //login api 
 export const loginUser = (data)=>{
     return api.post("/auth/login",data);
