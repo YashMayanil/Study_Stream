@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import VideoCard from '../components/VideoCard';
 import Loader from '../components/Loader';
-import { categories } from '../data/mockData';
 import { getVideo } from '../services/api.js';
 
 export default function Home() {

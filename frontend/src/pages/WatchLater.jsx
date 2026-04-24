@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
-import { videos } from '../data/mockData';
 
 export default function WatchLater() {
   const [watchLater, setWatchLater] = useState([]);
