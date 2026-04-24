@@ -112,3 +112,22 @@ export const searchAndStoreVideos = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// ➤ Get video count per category (for homepage stats)
+export const getVideoCounts = async (req, res) => {
+    try {
+        const counts = await Video.aggregate([
+            { $group: { _id: "$category", count: { $sum: 1 } } }
+        ]);
+
+        // Convert array to object: { dsa: 45, webdev: 30, ... }
+        const result = {};
+        counts.forEach(({ _id, count }) => {
+            if (_id) result[_id] = count;
+        });
+
+        res.status(200).json({ success: true, counts: result });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

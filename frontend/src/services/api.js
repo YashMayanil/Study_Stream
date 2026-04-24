@@ -44,6 +44,11 @@ export const getVideo = (category) => {
     return api.get(`/videos?category=${category}`)
 }
 
+// Get video count per category (real-time)
+export const getVideoCounts = () => {
+    return api.get('/videos/counts')
+}
+
 // Get single video by id
 export const getVideoById = (id) => {
     return api.get(`/videos/${id}`)

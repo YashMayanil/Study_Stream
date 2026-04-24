@@ -3,29 +3,94 @@ import { Link } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import VideoCard from '../components/VideoCard';
 import Loader from '../components/Loader';
-import { getVideo } from '../services/api.js';
+import { getVideo, getVideoCounts } from '../services/api.js';
+
+const BASE_CATEGORIES = [
+  {
+    id: 'dsa',
+    slug: 'dsa',
+    title: 'DSA',
+    description: 'Data Structures & Algorithms for competitive programming.',
+    icon: '🧩',
+    color: 'from-blue-600/20 to-blue-900/10',
+    accent: '#3b82f6',
+  },
+  {
+    id: 'webdev',
+    slug: 'webdev',
+    title: 'Web Dev',
+    description: 'HTML, CSS, JavaScript, React and modern web frameworks.',
+    icon: '🌐',
+    color: 'from-violet-600/20 to-violet-900/10',
+    accent: '#8b5cf6',
+  },
+  {
+    id: 'class10',
+    slug: 'class10',
+    title: 'Class 10',
+    description: 'CBSE Class 10 — Maths, Science, Social, English.',
+    icon: '📚',
+    color: 'from-emerald-600/20 to-emerald-900/10',
+    accent: '#10b981',
+  },
+  {
+    id: 'class11',
+    slug: 'class11',
+    title: 'Class 11',
+    description: 'CBSE Class 11 — Physics, Chemistry, Maths, Biology.',
+    icon: '🔬',
+    color: 'from-amber-600/20 to-amber-900/10',
+    accent: '#f59e0b',
+  },
+  {
+    id: 'class12',
+    slug: 'class12',
+    title: 'Class 12',
+    description: 'CBSE Class 12 — Board prep and competitive entrance.',
+    icon: '🎓',
+    color: 'from-rose-600/20 to-rose-900/10',
+    accent: '#f43f5e',
+  },
+];
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [videoCounts, setVideoCounts] = useState({});
   const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+  // Merge live counts into BASE_CATEGORIES
+  const categories = BASE_CATEGORIES.map((cat) => ({
+    ...cat,
+    videoCount: videoCounts[cat.slug] !== undefined
+      ? videoCounts[cat.slug]
+      : '—',
+  }));
 
   useEffect(() => {
     fetchVideos();
+    fetchCounts();
   }, []);
 
   const fetchVideos = async () => {
     try {
       setLoading(true);
-
       const res = await getVideo("dsa"); // it shoudl be fixed
-
       setVideos(res.data.videos);
       setLoading(false);
     } catch (error) {
       console.error(error);
       setLoading(false);
+    }
+  };
+
+  const fetchCounts = async () => {
+    try {
+      const res = await getVideoCounts();
+      setVideoCounts(res.data.counts);
+    } catch (error) {
+      console.error('Could not fetch video counts', error);
     }
   };
 
@@ -79,7 +144,7 @@ export default function Home() {
         {/* Stats row */}
         <div className="max-w-2xl mx-auto mt-16 grid grid-cols-3 gap-4 animate-fade-in">
           {[
-            { value: '750+', label: 'Videos' },
+            { value: Object.keys(videoCounts).length > 0 ? `${Object.values(videoCounts).reduce((a, b) => a + b, 0)}` : '...', label: 'Videos' },
             { value: '5', label: 'Subjects' },
             { value: '100%', label: 'Ad-Free' },
           ].map((stat) => (
