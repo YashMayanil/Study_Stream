@@ -3,14 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, googleLogin } from "../services/api.js";
 import { useToast } from '../components/Toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from "react";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { showToast } = useToast();
+  const location = useLocation();
+  const message = location.state?.message;
+
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -93,6 +98,18 @@ export default function Login() {
       showToast({ type: 'error', title: 'Google login failed', message: 'Sign-in was cancelled.' });
     },
   });
+
+  const { showToast } = useToast();
+
+useEffect(() => {
+  if (message) {
+    showToast({
+      type: "warning",
+      title: "Login Required",
+      message,
+    });
+  }
+}, [message]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20">

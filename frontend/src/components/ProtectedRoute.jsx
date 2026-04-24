@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }) {
   const isAuthenticated = localStorage.getItem("token");
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{message:"Please Login/Register first to continue.."}}/>;
   }
 
   return children;
