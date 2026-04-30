@@ -62,10 +62,12 @@ const fetchRelatedVideos = async (category, currentId) => {
       const res = await getMe();
       const user = res.data.user;
       const videoIdStr = id.toString();
-      setIsFav(user.favourites.some(v => (v._id || v).toString() === videoIdStr));
-      setIsWatchLater(user.watchLater.some(v => (v._id || v).toString() === videoIdStr));
+      const favIds = user.favourites.map(v => (v._id || v).toString());
+      const wlIds = user.watchLater.map(v => (v._id || v).toString());
+      setIsFav(favIds.includes(videoIdStr));
+      setIsWatchLater(wlIds.includes(videoIdStr));
     } catch (error) {
-      // Not logged in — silently ignore, buttons still work visually
+      // Not logged in — silently ignore
     }
   };
 
@@ -80,8 +82,9 @@ const fetchRelatedVideos = async (category, currentId) => {
   const toggleFav = async () => {
     try {
       const res = await toggleFavourite(id);
-      setIsFav(res.data.isFavourite);
-      if (res.data.isFavourite) {
+      const nowFav = res.data.isFavourite;
+      setIsFav(nowFav);
+      if (nowFav) {
         setFavAnim(true);
         setTimeout(() => setFavAnim(false), 600);
       }
@@ -93,8 +96,9 @@ const fetchRelatedVideos = async (category, currentId) => {
   const toggleWL = async () => {
     try {
       const res = await toggleWatchLater(id);
-      setIsWatchLater(res.data.isWatchLater);
-      if (res.data.isWatchLater) {
+      const nowWL = res.data.isWatchLater;
+      setIsWatchLater(nowWL);
+      if (nowWL) {
         setWlAnim(true);
         setTimeout(() => setWlAnim(false), 600);
       }

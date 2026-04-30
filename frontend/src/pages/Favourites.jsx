@@ -1,22 +1,45 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
+import { getMe, toggleFavourite } from '../services/api.js';
 
 export default function Favourites() {
-  const [favs, setFavs] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [removing, setRemoving] = useState(null); // track which video is being removed
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('ss_favourites') || '[]');
-    setFavs(saved);
+    fetchFavourites();
   }, []);
 
-  const removeVideo = (id) => {
-    const updated = favs.filter(v => v !== id);
-    localStorage.setItem('ss_favourites', JSON.stringify(updated));
-    setFavs(updated);
+  const fetchFavourites = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getMe();
+      // getMe populates favourites with full video objects
+      setVideos(res.data.user.favourites || []);
+    } catch (err) {
+      console.error('Failed to fetch favourites:', err);
+      setError('Please log in to see your favourites.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filtered = videos.filter(v => favs.includes(v.id));
+  const removeVideo = async (videoId) => {
+    try {
+      setRemoving(videoId);
+      await toggleFavourite(videoId);
+      // Remove from local state immediately for instant UI update
+      setVideos(prev => prev.filter(v => (v._id || v.id) !== videoId));
+    } catch (err) {
+      console.error('Failed to remove from favourites:', err);
+    } finally {
+      setRemoving(null);
+    }
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-20 px-4">
@@ -30,14 +53,33 @@ export default function Favourites() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white" style={{fontFamily:'Syne,sans-serif'}}>Favourites</h1>
-              <p className="text-slate-500 text-sm">{filtered.length} favourite video{filtered.length !== 1 ? 's' : ''}</p>
+              <p className="text-slate-500 text-sm">
+                {loading ? 'Loading...' : `${videos.length} favourite video${videos.length !== 1 ? 's' : ''}`}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-8"/>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-28">
+            <div className="w-8 h-8 border-2 border-pink-400/30 border-t-pink-400 rounded-full animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-28 animate-fade-in">
+            <div className="w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/15 flex items-center justify-center mb-5">
+              <svg className="w-9 h-9 text-pink-400/50" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">Login Required</h3>
+            <p className="text-slate-500 text-sm mb-6">{error}</p>
+            <Link to="/login" className="px-6 py-3 bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/20 text-pink-300 font-medium rounded-xl transition-all duration-200 text-sm">
+              Log In →
+            </Link>
+          </div>
+        ) : videos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-28 animate-fade-in">
             <div className="w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/15 flex items-center justify-center mb-5">
               <svg className="w-9 h-9 text-pink-400/50" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -52,15 +94,22 @@ export default function Favourites() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
-            {filtered.map(video => (
-              <div key={video.id} className="relative group">
+            {videos.map(video => (
+              <div key={video._id || video.id} className="relative group">
                 <VideoCard video={video} />
-                <button onClick={() => removeVideo(video.id)}
-                  className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-black/70 hover:bg-red-500/80 border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
-                  title="Remove from Favourites">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
+                <button
+                  onClick={() => removeVideo(video._id || video.id)}
+                  disabled={removing === (video._id || video.id)}
+                  className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-black/70 hover:bg-red-500/80 border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 disabled:opacity-60"
+                  title="Remove from Favourites"
+                >
+                  {removing === (video._id || video.id) ? (
+                    <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  )}
                 </button>
               </div>
             ))}
