@@ -1,4 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { lazy,Suspense } from 'react';
+import Loader from './components/Loader';
+import { ToastProvider } from './components/Toast';
+import ProtectedRoute from "./components/ProtectedRoute.jsx"
+
 const Navbar = lazy(() => import('./components/Navbar'));
 const Footer = lazy(() => import('./pages/Footer'));
 const Home = lazy(() => import('./pages/Home'));
@@ -8,8 +13,6 @@ const WatchLater = lazy(() => import('./pages/WatchLater'));
 const Favourites = lazy(() => import('./pages/Favourites'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
-import Footer from './pages/Footer';
-import Loader from './components/Loader';
 
 export default function App() {
   return (
