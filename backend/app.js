@@ -18,7 +18,7 @@ connectDB();
 
 
 app.use(cors({
-    origin:["http://locahost:5173","https://study-stream-hftiutrs-yashmayanil87-9461s-projects.vercel.app"],
+    origin:["http://locahost:5173","https://study-stream-fhtiutrsi-yashmayanil87-9461s-projects.vercel.app"],
     credentials:true,
 }))
 app.use(express.json());
