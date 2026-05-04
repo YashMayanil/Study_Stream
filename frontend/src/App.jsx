@@ -1,22 +1,24 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import VideosPage from './pages/VideosPage';
-import WatchPage from './pages/WatchPage';
-import WatchLater from './pages/WatchLater';
-import Favourites from './pages/Favourites';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Footer from './pages/Footer'; 
-import { ToastProvider } from './components/Toast';
-import ProtectedRoute from './components/ProtectedRoute';
+const Navbar = lazy(() => import('./components/Navbar'));
+const Footer = lazy(() => import('./pages/Footer'));
+const Home = lazy(() => import('./pages/Home'));
+const VideosPage = lazy(() => import('./pages/VideosPage'));
+const WatchPage = lazy(() => import('./pages/WatchPage'));
+const WatchLater = lazy(() => import('./pages/WatchLater'));
+const Favourites = lazy(() => import('./pages/Favourites'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+import Footer from './pages/Footer';
+import Loader from './components/Loader';
 
 export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <div className="min-h-screen bg-dark-950">
-        <Navbar />
+         <Suspense fallback={<div className="text-white text-center mt-20"><Loader></Loader></div>}>
+            <div className="min-h-screen bg-dark-950">
+          <Navbar />
+          
           <Routes>
             
             <Route path="/" element={<Home />} />
@@ -27,9 +29,12 @@ export default function App() {
             <Route path="/favourites" element={<ProtectedRoute><Favourites /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+          
           </Routes>
-        <Footer />
-        </div>
+          
+          <Footer />
+         </div>
+      </Suspense>
       </ToastProvider>
     </BrowserRouter>
   );
