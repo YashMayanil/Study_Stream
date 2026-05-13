@@ -103,6 +103,38 @@ const loginUserController = async (req, res) => {
     }
 }
 
+const updatePasswordController = async(req,res)=>{
+    try{
+        const {email,newPassword,oldPassword} = req.body;
+
+        if(!email || !newPassword || !oldPassword){
+            return res.status(400).json({ message: "All fields are required" })
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(401).json({ message: "Invalid email or password" })
+        }
+
+        const comparePass = await bcrypt.compare(oldPassword, user.password)
+
+        if (!comparePass) {
+            return res.status(401).json({ message: "Invalid email or password" })
+        }
+
+        const hashPass = await bcrypt.hash(newPassword, 12);
+
+        user.password = hashPass;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully" })
+
+    }catch(error){
+        console.error("Update password error:", error);
+        res.status(500).json({ message: "Something went wrong. Please try again." });
+    }
+}
 
 // ─── Google OAuth Login ────────────────────────────────────────────────────────
 // The frontend sends us the Google access_token from @react-oauth/google.
