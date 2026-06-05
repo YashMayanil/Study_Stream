@@ -63,4 +63,15 @@ const videoSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+
+// 1. Compound index: fast lookup of videos by category sorted by newest first
+//    Used by: getAllVideos, generatePlaylist, searchAndStoreVideos
+videoSchema.index({ category: 1, createdAt: -1 });
+
+// 2. Text index: enables full-text search on title & description
+//    Usage: Video.find({ $text: { $search: "binary tree" } })
+videoSchema.index({ title: "text", description: "text" });
+
+
 export default mongoose.model("Video", videoSchema);

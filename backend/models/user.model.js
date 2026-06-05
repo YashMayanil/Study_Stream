@@ -59,4 +59,13 @@ const userSchema = new mongoose.Schema({
     timestamps:true,
 })
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+
+// 1. email already has unique:true — Mongoose auto-creates a unique index
+//    Explicitly adding sparse index on googleId for fast OAuth lookups
+userSchema.index({ googleId: 1 }, { sparse: true });
+
+// 2. Compound index for history queries: get a user's watch history sorted newest first
+userSchema.index({ "history.video": 1, "history.watchedAt": -1 });
+
 export default mongoose.model("User",userSchema)
