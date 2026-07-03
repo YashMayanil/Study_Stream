@@ -1,7 +1,7 @@
 # 📚 StudyStream — Full Stack Educational Platform
 
 🚀 Live Demo: https://study-stream-fhtiutrsi-yashmayanil87-9461s-projects.vercel.app
-🔗 Backend API: https://study-stream-hf6a.onrender.com
+
 
 ---
 
